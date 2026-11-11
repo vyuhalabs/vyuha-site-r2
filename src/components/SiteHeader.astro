@@ -7,6 +7,7 @@ const pages = [
   { label: "Model", path: "/model/" },
   { label: "Guide", path: "/guide/" },
   { label: "FAQ", path: "/faq/" },
+  { label: "Changelog", path: "/changelog/" },
 ];
 
 const path = Astro.url.pathname.replace(/\/?$/, "/");
@@ -50,7 +51,7 @@ const isHome = path === href("/");
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-6);
+    gap: var(--space-4);
     min-height: var(--header-height);
   }
 
@@ -72,9 +73,20 @@ const isHome = path === href("/");
 
   .site-nav {
     display: flex;
-    gap: var(--space-5);
+    gap: var(--space-4);
     padding: 0;
     list-style: none;
+  }
+
+  /* Four pages fit beside the wordmark at 360px only with the tighter gaps above. */
+  @media (min-width: 25rem) {
+    .site-header__inner {
+      gap: var(--space-6);
+    }
+
+    .site-nav {
+      gap: var(--space-5);
+    }
   }
 
   /* On a phone the header has room for the pages; the request is in the footer and the pages. */

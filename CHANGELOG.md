@@ -2,6 +2,12 @@
 
 All notable changes to the vyuha site are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the site's versions are tags on `main`.
 
+## Unreleased
+
+### Pages
+
+- Changelog page (`/changelog/`): the releases in this file, newest first, linked from the header and the footer. An `## Unreleased` section like this one is not shown; a heading that is neither a release (`## <version> - <YYYY-MM-DD>`) nor `Unreleased` fails the build.
+
 ## 0.1.0 - 2026-11-11
 
 The first release of https://vyuhalabs.github.io/vyuha-site-r2.
