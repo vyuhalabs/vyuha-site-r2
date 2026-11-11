@@ -2,7 +2,9 @@
 import { href, SITE } from "../lib/site";
 import Mark from "./Mark.astro";
 
-const isHome = Astro.url.pathname === href("/");
+const path = Astro.url.pathname.replace(/\/?$/, "/");
+const isHome = path === href("/");
+const guide = href("/guide/");
 ---
 
 <header class="site-header">
@@ -14,6 +16,11 @@ const isHome = Astro.url.pathname === href("/");
     </a>
     <nav aria-label="Main">
       <ul class="site-nav" role="list">
+        <li>
+          <a class="site-nav__link" href={guide} aria-current={path === guide ? "page" : undefined}>
+            Guide
+          </a>
+        </li>
         <li><a class="site-nav__link" href={SITE.accessRequest}>Request access</a></li>
       </ul>
     </nav>
@@ -65,7 +72,8 @@ const isHome = Astro.url.pathname === href("/");
     text-decoration: none;
   }
 
-  .site-nav__link:hover {
+  .site-nav__link:hover,
+  .site-nav__link[aria-current="page"] {
     color: var(--color-text);
   }
 </style>

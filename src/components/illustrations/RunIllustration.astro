@@ -1,0 +1,367 @@
+---
+/**
+ * An agent's run on an issue: the issue's stages, the evidence the run left
+ * (commands with exit codes, screenshots, the pull request), the review and
+ * the verification against the acceptance criteria. Invented data.
+ */
+import Check from "./Check.astro";
+import Illustration from "./Illustration.astro";
+
+type Step = "done" | "current" | "todo";
+const stages: { name: string; step: Step; note: string }[] = [
+  { name: "build", step: "done", note: "Engineer agent" },
+  { name: "review", step: "done", note: "Approved" },
+  { name: "verify", step: "current", note: "3 of 4 criteria" },
+  { name: "ship", step: "todo", note: "Merge on notify" },
+];
+
+const evidence: { kind: string; source: string; detail: string; mono: boolean; result: string }[] =
+  [
+    {
+      kind: "tests.passed",
+      source: "command",
+      detail: "pnpm test",
+      mono: true,
+      result: "exit 0",
+    },
+    {
+      kind: "typecheck.passed",
+      source: "command",
+      detail: "pnpm exec tsc --noEmit",
+      mono: true,
+      result: "exit 0",
+    },
+    {
+      kind: "lint.passed",
+      source: "command",
+      detail: "pnpm exec biome ci .",
+      mono: true,
+      result: "exit 0",
+    },
+    {
+      kind: "screenshot",
+      source: "agent",
+      detail: "Export dialog at 390 and 1280 wide",
+      mono: false,
+      result: "2 files",
+    },
+    {
+      kind: "pr",
+      source: "system",
+      detail: "#218 Exports: filter by date range",
+      mono: false,
+      result: "open",
+    },
+  ];
+
+const criteria: { id: string; text: string; holds: boolean }[] = [
+  { id: "c1", text: "Filter by a start and an end date", holds: true },
+  { id: "c2", text: "The file holds only rows in the range", holds: true },
+  { id: "c3", text: "Works from 360px to 1440px wide", holds: true },
+  { id: "c4", text: "Every control reachable by keyboard", holds: false },
+];
+---
+
+<Illustration
+  caption="Illustration: an agent's run on an issue, with the evidence it left, the review and the verification in progress. The data is invented."
+>
+  <div class="ill-bar">
+    <span class="ill-crumbs">
+      <span class="ill-mono">WEB-142</span>
+      <span class="ill-sep">/</span>
+      <strong>Exports: filter by date range</strong>
+    </span>
+    <span class="ill-chip">run r-7k2mq</span>
+  </div>
+
+  <div class="run">
+    <ol class="ill-track stages">
+      {
+        stages.map((s) => (
+          <li class:list={["ill-step", `ill-step--${s.step}`]}>
+            {s.step === "done" ? (
+              <span class="ill-tick">
+                <Check />
+              </span>
+            ) : (
+              <span class:list={["ill-tick", s.step === "current" ? "ill-tick--current" : "ill-tick--open"]} />
+            )}
+            <span class="ill-step__name ill-mono">{s.name}</span>
+            <span class="ill-meta">{s.note}</span>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="run__meta">
+      <span class="run__who">
+        <span class="ill-avatar">EN</span>
+        <span>Engineer agent</span>
+      </span>
+      <span class="ill-meta">Attempt 1 · 18 min</span>
+      <span class="ill-mono run__branch">vyuha/WEB-142/r-7k2mq</span>
+    </div>
+
+    <div class="run__grid">
+      <div class="evidence">
+        <div class="run__head">
+          <span class="ill-label">Evidence</span>
+          <span class="ill-meta">5 of 5 passed</span>
+        </div>
+        <ul class="evidence__list">
+          {
+            evidence.map((e) => (
+              <li class="ev">
+                <span class="ill-tick">
+                  <Check />
+                </span>
+                <span class="ev__body">
+                  <span class="ev__kind ill-mono">{e.kind}</span>
+                  <span class:list={["ev__detail", e.mono && "ill-mono"]}>{e.detail}</span>
+                </span>
+                <span class="ev__side">
+                  <span class="ill-mono ev__result">{e.result}</span>
+                  <span class="ill-meta">{e.source}</span>
+                </span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div class="checks">
+        <div class="panel">
+          <div class="run__head">
+            <span class="ill-label">Review</span>
+            <span class="ill-chip ill-chip--strong">approved</span>
+          </div>
+          <p class="panel__line">
+            <span class="ill-avatar">RV</span>
+            <span>Reviewer agent</span>
+          </p>
+          <p class="ill-meta">0 must fix · 2 suggestions</p>
+        </div>
+
+        <div class="panel">
+          <div class="run__head">
+            <span class="ill-label">Verify</span>
+            <span class="ill-chip ill-chip--accent">in progress</span>
+          </div>
+          <ul class="criteria">
+            {
+              criteria.map((c) => (
+                <li class="criterion">
+                  {c.holds ? (
+                    <span class="ill-tick">
+                      <Check />
+                    </span>
+                  ) : (
+                    <span class="ill-tick ill-tick--current" />
+                  )}
+                  <span class="ill-mono criterion__id">{c.id}</span>
+                  <span>{c.text}</span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <div class="panel panel--merge">
+          <span class="ill-label">Merge</span>
+          <p>After review and verification. Tier: notify, so a person may object.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <Fragment slot="description">
+    <p>
+      Run r-7k2mq on the issue WEB-142, Exports: filter by date range, by the engineer agent:
+      attempt 1, 18 minutes, on the branch vyuha/WEB-142/r-7k2mq. The issue's stages: build,
+      done; review, approved; verify, in progress with 3 of 4 criteria holding; ship, where the
+      merge is on the notify tier.
+    </p>
+    <p>The evidence, all passed:</p>
+    <ul>
+      {
+        evidence.map((e) => (
+          <li>
+            {e.kind}, from {e.source === "command" ? "the command" : `the ${e.source}`}{" "}
+            {e.detail}: {e.result}.
+          </li>
+        ))
+      }
+    </ul>
+    <p>Review: approved by the reviewer agent, with no must-fix findings and 2 suggestions.</p>
+    <p>Verification against the acceptance criteria:</p>
+    <ul>
+      {
+        criteria.map((c) => (
+          <li>
+            {c.id}, {c.text}: {c.holds ? "holds" : "being checked"}.
+          </li>
+        ))
+      }
+    </ul>
+    <p>Merge: after review and verification; the tier is notify, so a person may object.</p>
+  </Fragment>
+</Illustration>
+
+<style>
+  .run {
+    display: grid;
+    gap: var(--space-5);
+    padding: var(--space-5) var(--space-4) var(--space-4);
+  }
+
+  .stages {
+    padding-bottom: var(--space-5);
+    border-bottom: var(--border-width) solid var(--color-border);
+  }
+
+  .run__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-4);
+  }
+
+  .run__who {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: var(--weight-semibold);
+  }
+
+  .run__branch {
+    overflow-wrap: anywhere;
+    color: var(--color-text-subtle);
+  }
+
+  .run__grid {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .run__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    min-height: var(--space-6);
+    padding-bottom: var(--space-2);
+  }
+
+  .evidence__list,
+  .criteria {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ev {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
+    gap: var(--space-3);
+    padding-block: var(--space-3);
+    border-top: var(--border-width) solid var(--color-border);
+  }
+
+  .ev .ill-tick {
+    margin-top: var(--space-0-5);
+  }
+
+  .ev__body,
+  .ev__side {
+    display: grid;
+    gap: var(--space-0-5);
+    min-width: 0;
+    line-height: var(--leading-snug);
+  }
+
+  .ev__side {
+    justify-items: end;
+    text-align: right;
+  }
+
+  .ev__kind {
+    color: var(--color-text);
+  }
+
+  .ev__detail {
+    overflow-wrap: anywhere;
+    color: var(--color-text-muted);
+  }
+
+  .ev__result {
+    color: var(--color-text);
+  }
+
+  .checks {
+    display: grid;
+    align-content: start;
+    gap: var(--space-4);
+  }
+
+  .panel {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-raised);
+  }
+
+  .panel .run__head {
+    padding-bottom: 0;
+  }
+
+  .panel p {
+    margin: 0;
+  }
+
+  .panel__line {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: var(--weight-semibold);
+  }
+
+  .panel--merge {
+    border-color: var(--color-accent);
+    background: var(--color-accent-subtle);
+  }
+
+  .panel--merge p {
+    color: var(--color-text);
+  }
+
+  .criterion {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-2);
+    padding-block: var(--space-1);
+    line-height: var(--leading-snug);
+  }
+
+  .criterion .ill-tick {
+    margin-top: var(--space-0-5);
+  }
+
+  .criterion__id {
+    color: var(--color-text-subtle);
+  }
+
+  @container (min-width: 44rem) {
+    .run {
+      padding: var(--space-6);
+    }
+
+    .run__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 19rem);
+      gap: var(--space-8);
+    }
+  }
+</style>

@@ -1,5 +1,5 @@
 ---
-import { SITE } from "../lib/site";
+import { href, SITE } from "../lib/site";
 ---
 
 <footer class="site-footer">
@@ -9,6 +9,7 @@ import { SITE } from "../lib/site";
       as one.
     </p>
     <ul class="site-footer__links" role="list">
+      <li><a href={href("/guide/")}>Getting-started guide</a></li>
       <li><a href={SITE.accessRequest}>Request access</a></li>
       <li><a href={SITE.repository}>Source of this site</a></li>
     </ul>
