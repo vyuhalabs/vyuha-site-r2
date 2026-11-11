@@ -1,0 +1,339 @@
+---
+/**
+ * A project on a playbook: its stages (Brief, Build, Release, Learn), its
+ * issues with their state and stage (build, review, verify, ship), and the
+ * pod of agents that holds them. Invented data, no real names.
+ */
+import Check from "./Check.astro";
+import Illustration from "./Illustration.astro";
+
+type Step = "done" | "current" | "todo";
+const stages: { name: string; step: Step; note: string }[] = [
+  { name: "Brief", step: "done", note: "Passed" },
+  { name: "Build", step: "current", note: "Stage 2 of 4" },
+  { name: "Release", step: "todo", note: "Gate: a person approves" },
+  { name: "Learn", step: "todo", note: "Lessons kept" },
+];
+
+type State = "backlog" | "todo" | "progress" | "review" | "done";
+const issues: {
+  id: string;
+  title: string;
+  state: State;
+  stateName: string;
+  stage?: string;
+  holder: string;
+  holderName: string;
+  note?: string;
+}[] = [
+  {
+    id: "WEB-141",
+    title: "Invoices: CSV export",
+    state: "done",
+    stateName: "Done",
+    stage: "ship",
+    holder: "EN",
+    holderName: "engineer agent",
+    note: "Merged",
+  },
+  {
+    id: "WEB-142",
+    title: "Exports: filter by date range",
+    state: "review",
+    stateName: "In Review",
+    stage: "verify",
+    holder: "QA",
+    holderName: "QA agent",
+    note: "3 of 4 criteria hold",
+  },
+  {
+    id: "WEB-143",
+    title: "Empty state for the exports list",
+    state: "progress",
+    stateName: "In Progress",
+    stage: "build",
+    holder: "EN",
+    holderName: "engineer agent",
+    note: "Run r-4hx2p running",
+  },
+  {
+    id: "WEB-144",
+    title: "Limit the size of large exports",
+    state: "todo",
+    stateName: "Todo",
+    holder: "EN",
+    holderName: "engineer agent",
+    note: "Blocked by WEB-142",
+  },
+  {
+    id: "WEB-145",
+    title: "Release note for exports",
+    state: "backlog",
+    stateName: "Backlog",
+    holder: "DL",
+    holderName: "delivery lead agent",
+  },
+];
+
+const pod = [
+  { initials: "DL", role: "Delivery lead", count: "1 agent" },
+  { initials: "EN", role: "Engineer", count: "2 agents" },
+  { initials: "RV", role: "Reviewer", count: "1 agent" },
+  { initials: "QA", role: "QA", count: "1 agent" },
+];
+---
+
+<Illustration
+  caption="Illustration: a project on the Fast playbook at its Build stage, with its issues and the pod of agents that works on them. The data is invented."
+>
+  <div class="ill-bar">
+    <span class="ill-crumbs">
+      <span class="ill-mono">WEB</span>
+      <span class="ill-sep">/</span>
+      <span>Projects</span>
+      <span class="ill-sep">/</span>
+      <strong>Billing export</strong>
+    </span>
+    <span class="ill-chip">Fast playbook</span>
+  </div>
+
+  <div class="project">
+    <ol class="ill-track stages">
+      {
+        stages.map((s) => (
+          <li class:list={["ill-step", `ill-step--${s.step}`]}>
+            {s.step === "done" ? (
+              <span class="ill-tick">
+                <Check />
+              </span>
+            ) : (
+              <span class:list={["ill-tick", s.step === "current" ? "ill-tick--current" : "ill-tick--open"]} />
+            )}
+            <span class="ill-step__name">{s.name}</span>
+            <span class="ill-meta stage__note">{s.note}</span>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="project__grid">
+      <div class="issues">
+        <div class="issues__head">
+          <span class="ill-label">Issues</span>
+          <span class="ill-meta">1 of 5 done</span>
+        </div>
+        <ul class="issues__list">
+          {
+            issues.map((i) => (
+              <li class="issue">
+                <span class:list={["ill-state", `ill-state--${i.state}`]} />
+                <span class="ill-mono issue__id">{i.id}</span>
+                <span class="issue__text">
+                  <span class="issue__title">{i.title}</span>
+                  {i.note && <span class="ill-meta">{i.note}</span>}
+                </span>
+                <span class="issue__stage">
+                  {i.stage && (
+                    <span class:list={["ill-chip", i.state === "progress" && "ill-chip--accent"]}>
+                      {i.stage}
+                    </span>
+                  )}
+                </span>
+                <span class="ill-avatar">{i.holder}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div class="pod">
+        <span class="ill-label">Pod</span>
+        <ul class="pod__list">
+          {
+            pod.map((p) => (
+              <li class="pod__member">
+                <span class="ill-avatar">{p.initials}</span>
+                <span class="pod__role">{p.role}</span>
+                <span class="ill-meta">{p.count}</span>
+              </li>
+            ))
+          }
+        </ul>
+        <div class="pod__milestone">
+          <span class="ill-label">Milestone</span>
+          <span>Exports beta</span>
+          <span class="ill-meta">Due 28 November</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <Fragment slot="description">
+    <p>
+      The project Billing export, in the team WEB, runs on the Fast playbook. Its stages:
+      {stages.map((s) => `${s.name} (${s.note.toLowerCase()})`).join(", ")}.
+    </p>
+    <p>Its issues:</p>
+    <ul>
+      {
+        issues.map((i) => (
+          <li>
+            {i.id} {i.title}: {i.stateName}
+            {i.stage && `, at the ${i.stage} stage`}, held by the {i.holderName}
+            {i.note && `; ${i.note.charAt(0).toLowerCase()}${i.note.slice(1)}`}.
+          </li>
+        ))
+      }
+    </ul>
+    <p>
+      Its pod: {pod.map((p) => `${p.role.toLowerCase()} (${p.count})`).join(", ")}. Milestone:
+      Exports beta, due 28 November.
+    </p>
+  </Fragment>
+</Illustration>
+
+<style>
+  .project {
+    display: grid;
+    gap: var(--space-6);
+    padding: var(--space-5) var(--space-4) var(--space-4);
+  }
+
+  .stages {
+    padding-bottom: var(--space-5);
+    border-bottom: var(--border-width) solid var(--color-border);
+  }
+
+  .stage__note {
+    line-height: var(--leading-snug);
+  }
+
+  .project__grid {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .issues__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding-bottom: var(--space-2);
+  }
+
+  .issues__list {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .issue {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: center;
+    column-gap: var(--space-3);
+    padding-block: var(--space-3);
+    border-top: var(--border-width) solid var(--color-border);
+  }
+
+  .issue__id {
+    color: var(--color-text-subtle);
+  }
+
+  .issue__text {
+    display: grid;
+    min-width: 0;
+    line-height: var(--leading-snug);
+  }
+
+  .issue__title {
+    font-weight: var(--weight-semibold);
+  }
+
+  .pod {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+  }
+
+  .pod__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pod__member {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .pod__role {
+    font-weight: var(--weight-semibold);
+  }
+
+  .pod__milestone {
+    display: grid;
+    gap: var(--space-0-5);
+    margin-top: var(--space-2);
+    padding-top: var(--space-4);
+    border-top: var(--border-width) solid var(--color-border);
+  }
+
+  .pod__milestone > span:nth-child(2) {
+    margin-top: var(--space-1);
+    font-weight: var(--weight-semibold);
+  }
+
+  /* Narrow frames: the stage chip and the id give way to the title. */
+  @container (max-width: 32rem) {
+    .issues__list {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+
+    .issue__id,
+    .issue__stage {
+      display: none;
+    }
+
+    .stage__note {
+      display: none;
+    }
+
+    .ill-step--current .stage__note {
+      display: block;
+    }
+  }
+
+  /* Wide frames: the pod sits beside the issues. */
+  @container (min-width: 44rem) {
+    .project {
+      padding: var(--space-6);
+    }
+
+    .project__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 15rem);
+      gap: var(--space-8);
+    }
+
+    .pod {
+      padding-left: var(--space-6);
+      border-left: var(--border-width) solid var(--color-border);
+    }
+
+    .pod__list {
+      display: grid;
+      gap: var(--space-3);
+    }
+
+    .pod__member .ill-meta {
+      margin-left: auto;
+    }
+  }
+</style>

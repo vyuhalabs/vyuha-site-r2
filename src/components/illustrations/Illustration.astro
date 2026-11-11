@@ -1,0 +1,42 @@
+---
+/**
+ * A drawn screen of vyuha, in HTML and CSS. The drawing is hidden from
+ * assistive technology; the visible caption names the figure and the
+ * description (the "description" slot, visually hidden) says in words
+ * everything the drawing shows.
+ */
+import "../../styles/illustration.css";
+
+interface Props {
+  /** One sentence under the drawing: what it is. Says that the data is invented. */
+  caption: string;
+  class?: string;
+}
+
+const { caption, class: className } = Astro.props;
+---
+
+<figure class:list={["illustration", className]}>
+  <div class="ill" aria-hidden="true">
+    <slot />
+  </div>
+  <figcaption class="illustration__caption">{caption}</figcaption>
+  <div class="visually-hidden">
+    <slot name="description" />
+  </div>
+</figure>
+
+<style>
+  .illustration {
+    display: grid;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+
+  .illustration__caption {
+    max-width: var(--measure-prose);
+    color: var(--color-text-subtle);
+    font-size: var(--text-xs);
+    line-height: var(--leading-normal);
+  }
+</style>

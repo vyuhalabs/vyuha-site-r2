@@ -1,0 +1,154 @@
+---
+/**
+ * The getting-started guide, short form: the first four steps once a person
+ * has access. The full guide replaces this page in the next deliverable.
+ */
+import ButtonLink from "../components/ButtonLink.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { href, SITE } from "../lib/site";
+
+const steps = [
+  {
+    title: "Connect a repository",
+    text: "Give vyuha access to the repository agents will work in. Each run works on a branch of its own.",
+  },
+  {
+    title: "Create a project",
+    text: "Name it, write a short brief and choose a playbook. What the lead agent cannot learn from the brief, it asks you in one decision in your Inbox.",
+  },
+  {
+    title: "File a first issue",
+    text: "Describe the change and how you will know it is done: its acceptance criteria. An agent picks it up and runs it on a machine you control.",
+  },
+  {
+    title: "Read a run's evidence",
+    text: "Open the run: the commands with their exit codes, the tests, the screenshots, the pull request and the review. vyuha merges after review and verification, and the decision tier says whether a person approves first or may object.",
+  },
+];
+---
+
+<BaseLayout
+  title="Getting started"
+  description="The first four steps with vyuha once you have access: connect a repository, create a project, file a first issue and read a run's evidence. Access is by request."
+>
+  <article class="guide container" aria-labelledby="guide-title">
+    <p class="eyebrow">Guide</p>
+    <h1 id="guide-title">Getting started with vyuha</h1>
+    <p class="lead">
+      Access to vyuha is by request. Once you have it, these are the first four steps. This is the
+      short version; the full guide is being written.
+    </p>
+
+    <ol class="steps" role="list">
+      {
+        steps.map((s, i) => (
+          <li class="step">
+            <span class="step__num" aria-hidden="true">
+              {String(i + 1).padStart(2, "0")}
+            </span>
+            <div>
+              <h2>{s.title}</h2>
+              <p>{s.text}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+
+    <section class="access" aria-labelledby="access-title">
+      <h2 id="access-title">Ask for access</h2>
+      <p>
+        A request is a public issue on this site's repository, opened from a template. Write
+        nothing in it that you would not publish.
+      </p>
+      <div class="actions">
+        <ButtonLink href={SITE.accessRequest} external>Request access on GitHub</ButtonLink>
+        <a class="back" href={href("/")}>Back to the home page</a>
+      </div>
+    </section>
+  </article>
+</BaseLayout>
+
+<style>
+  .guide {
+    max-width: calc(var(--width-prose) + 2 * var(--gutter));
+    padding-block: clamp(var(--space-16), 8vw, var(--space-24)) var(--section-space);
+  }
+
+  .eyebrow {
+    margin-bottom: var(--space-4);
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+  }
+
+  .lead {
+    max-width: var(--measure-lead);
+    margin-top: var(--space-6);
+    color: var(--color-text-muted);
+    font-size: var(--text-lg);
+    line-height: var(--leading-normal);
+  }
+
+  .steps {
+    display: grid;
+    margin: var(--space-12) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: var(--space-10) minmax(0, 1fr);
+    gap: var(--space-4);
+    padding-block: var(--space-6);
+    border-top: var(--border-width) solid var(--color-border);
+  }
+
+  .step__num {
+    padding-top: var(--space-1);
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+
+  .step h2 {
+    font-size: var(--text-xl);
+  }
+
+  .step p {
+    margin-top: var(--space-2);
+    color: var(--color-text-muted);
+  }
+
+  .access {
+    margin-top: var(--space-8);
+    padding: var(--space-8);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+  }
+
+  .access h2 {
+    font-size: var(--text-xl);
+  }
+
+  .access p {
+    margin-top: var(--space-2);
+    color: var(--color-text-muted);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4) var(--space-6);
+    margin-top: var(--space-6);
+  }
+
+  .back {
+    font-weight: var(--weight-semibold);
+  }
+</style>

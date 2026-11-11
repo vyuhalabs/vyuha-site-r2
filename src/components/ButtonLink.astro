@@ -1,0 +1,84 @@
+---
+/**
+ * A link drawn as a button: the page's calls to action. Primary is the one
+ * accent-filled action on a screen; secondary is outlined. A link to another
+ * site says so with an arrow (hidden from assistive technology; the link's
+ * text names the destination).
+ */
+interface Props {
+  href: string;
+  variant?: "primary" | "secondary";
+  external?: boolean;
+}
+
+const { href, variant = "primary", external = false } = Astro.props;
+---
+
+<a class:list={["button", `button--${variant}`]} href={href}>
+  <slot />
+  {
+    external && (
+      <svg class="button__icon" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+        <path
+          d="M5.5 10.5 10.5 5.5M6 5.5h4.5V10"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    )
+  }
+</a>
+
+<style>
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: var(--space-12);
+    padding-inline: var(--space-6);
+    border: var(--border-width) solid transparent;
+    border-radius: var(--radius-md);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-snug);
+    text-align: center;
+    text-decoration: none;
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out);
+  }
+
+  .button--primary {
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+  }
+
+  .button--primary:hover {
+    background: var(--color-accent-hover);
+    color: var(--color-on-accent);
+  }
+
+  .button--secondary {
+    border-color: var(--color-border-strong);
+    background: var(--color-surface-raised);
+    color: var(--color-text);
+  }
+
+  .button--secondary:hover {
+    border-color: var(--color-text);
+    color: var(--color-text);
+  }
+
+  .button:focus-visible {
+    border-radius: var(--radius-md);
+  }
+
+  .button__icon {
+    width: var(--space-4);
+    height: var(--space-4);
+    color: var(--color-text-subtle);
+  }
+</style>
