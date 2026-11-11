@@ -1,0 +1,71 @@
+---
+import { href, SITE } from "../lib/site";
+import Mark from "./Mark.astro";
+
+const isHome = Astro.url.pathname === href("/");
+---
+
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="wordmark" href={href("/")} aria-current={isHome ? "page" : undefined}>
+      <Mark size={22} />
+      <span class="wordmark__name">{SITE.name}</span>
+      <span class="visually-hidden">, home</span>
+    </a>
+    <nav aria-label="Main">
+      <ul class="site-nav" role="list">
+        <li><a class="site-nav__link" href={SITE.accessRequest}>Request access</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    border-bottom: var(--border-width) solid var(--color-border);
+  }
+
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+    min-height: var(--header-height);
+  }
+
+  .wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding-block: var(--space-2);
+    color: var(--color-text);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-heading);
+    text-decoration: none;
+  }
+
+  .wordmark:hover {
+    color: var(--color-text);
+  }
+
+  .site-nav {
+    display: flex;
+    gap: var(--space-6);
+    padding: 0;
+    list-style: none;
+  }
+
+  .site-nav__link {
+    display: inline-block;
+    padding-block: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+  }
+
+  .site-nav__link:hover {
+    color: var(--color-text);
+  }
+</style>
