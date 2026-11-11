@@ -1,0 +1,102 @@
+---
+/**
+ * One section of the model page or the guide: a label, the h2, a lead
+ * sentence, the Markdown body and, if the section asks for them, drawings of
+ * the product.
+ */
+import type { CollectionEntry } from "astro:content";
+import { render } from "astro:content";
+import DecisionsIllustration from "./illustrations/DecisionsIllustration.astro";
+import InboxIllustration from "./illustrations/InboxIllustration.astro";
+import ProjectIllustration from "./illustrations/ProjectIllustration.astro";
+import RunIllustration from "./illustrations/RunIllustration.astro";
+import "../styles/prose.css";
+
+interface Props {
+  entry: CollectionEntry<"docs">;
+}
+
+const { entry } = Astro.props;
+const { label, title, summary, illustrations } = entry.data;
+const { Content } = await render(entry);
+const id = entry.id.split("/").pop() ?? entry.id;
+
+const figures = {
+  project: ProjectIllustration,
+  run: RunIllustration,
+  decisions: DecisionsIllustration,
+  inbox: InboxIllustration,
+};
+---
+
+<section class="doc-section" id={id} aria-labelledby={`${id}-title`}>
+  <p class="doc-section__label">{label}</p>
+  <h2 id={`${id}-title`}>{title}</h2>
+  <p class="doc-section__summary">{summary}</p>
+  <div class="prose">
+    <Content />
+  </div>
+  {
+    illustrations.length > 0 && (
+      <div class:list={["doc-section__figures", illustrations.length > 1 && "doc-section__figures--pair"]}>
+        {illustrations.map((name) => {
+          const Figure = figures[name];
+          return <Figure />;
+        })}
+      </div>
+    )
+  }
+</section>
+
+<style>
+  .doc-section {
+    min-width: 0;
+    padding-block: var(--space-12);
+    border-top: var(--border-width) solid var(--color-border);
+  }
+
+  .doc-section:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .doc-section__label {
+    margin-bottom: var(--space-3);
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+  }
+
+  h2 {
+    max-width: var(--measure-heading);
+    font-size: var(--text-3xl);
+  }
+
+  .doc-section__summary {
+    max-width: var(--measure-lead);
+    margin-top: var(--space-4);
+    color: var(--color-text);
+    font-size: var(--text-lg);
+    line-height: var(--leading-normal);
+  }
+
+  .doc-section .prose {
+    margin-top: var(--space-6);
+  }
+
+  .doc-section__figures {
+    display: grid;
+    gap: var(--space-10);
+    margin-top: var(--space-10);
+  }
+
+  @media (min-width: 80rem) {
+    .doc-section__figures--pair {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      align-items: start;
+      gap: var(--space-8);
+    }
+  }
+</style>

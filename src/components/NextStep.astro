@@ -1,0 +1,97 @@
+---
+/**
+ * The closing call to action of a page: a heading, a few words (the default
+ * slot) and one or two buttons. The primary button leads where the page
+ * leads next; the secondary one is the request for access.
+ */
+import ButtonLink from "./ButtonLink.astro";
+
+interface Link {
+  label: string;
+  href: string;
+  external?: boolean;
+}
+
+interface Props {
+  title: string;
+  primary: Link;
+  secondary?: Link;
+}
+
+const { title, primary, secondary } = Astro.props;
+---
+
+<section class="next" aria-labelledby="next-title">
+  <div class="container">
+    <div class="next__card">
+      <div class="next__text">
+        <h2 id="next-title">{title}</h2>
+        <p><slot /></p>
+      </div>
+      <div class="next__actions">
+        <ButtonLink href={primary.href} external={primary.external ?? false}>
+          {primary.label}
+        </ButtonLink>
+        {
+          secondary && (
+            <ButtonLink href={secondary.href} variant="secondary" external={secondary.external ?? false}>
+              {secondary.label}
+            </ButtonLink>
+          )
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .next {
+    padding-block: var(--section-space);
+  }
+
+  .next__card {
+    display: grid;
+    gap: var(--space-8);
+    padding: clamp(var(--space-6), 5vw, var(--space-12));
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+  }
+
+  .next__text p {
+    max-width: var(--measure-lead);
+    margin-top: var(--space-4);
+    color: var(--color-text-muted);
+    font-size: var(--text-lg);
+    line-height: var(--leading-normal);
+  }
+
+  .next__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+
+  @media (min-width: 30rem) {
+    .next__actions {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-3) var(--space-4);
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .next__card {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: var(--space-12);
+    }
+
+    .next__actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+</style>

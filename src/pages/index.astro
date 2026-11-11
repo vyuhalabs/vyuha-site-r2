@@ -10,6 +10,7 @@ import DecisionsIllustration from "../components/illustrations/DecisionsIllustra
 import InboxIllustration from "../components/illustrations/InboxIllustration.astro";
 import ProjectIllustration from "../components/illustrations/ProjectIllustration.astro";
 import RunIllustration from "../components/illustrations/RunIllustration.astro";
+import NextStep from "../components/NextStep.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { href, SITE } from "../lib/site";
 
@@ -201,26 +202,15 @@ const audiences = [
     </div>
   </section>
 
-  <section class="next" aria-labelledby="next-title">
-    <div class="container">
-      <div class="next__card">
-        <div class="next__text">
-          <h2 id="next-title">Start with the guide.</h2>
-          <p>
-            It covers the first steps once you have access: connect a repository, create a project,
-            file a first issue and read a run's evidence. Access is by request, through a public
-            issue on this site's repository.
-          </p>
-        </div>
-        <div class="actions next__actions">
-          <ButtonLink href={href("/guide/")}>Read the getting-started guide</ButtonLink>
-          <ButtonLink href={SITE.accessRequest} variant="secondary" external>
-            Request access on GitHub
-          </ButtonLink>
-        </div>
-      </div>
-    </div>
-  </section>
+  <NextStep
+    title="Start with the guide."
+    primary={{ label: "Read the getting-started guide", href: href("/guide/") }}
+    secondary={{ label: "Request access on GitHub", href: SITE.accessRequest, external: true }}
+  >
+    It covers the first steps once you have access: connect a repository, create a project, file a
+    first issue and read a run's evidence. Access is by request, through a public issue on this
+    site's repository.
+  </NextStep>
 </BaseLayout>
 
 <style>
@@ -475,41 +465,6 @@ const audiences = [
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       align-items: start;
       gap: var(--space-8);
-    }
-  }
-
-  /* The next step. */
-  .next {
-    padding-block: var(--section-space);
-  }
-
-  .next__card {
-    display: grid;
-    gap: var(--space-8);
-    padding: clamp(var(--space-6), 5vw, var(--space-12));
-    border: var(--border-width) solid var(--color-border);
-    border-radius: var(--radius-lg);
-    background: var(--color-surface);
-  }
-
-  .next__text p {
-    max-width: var(--measure-lead);
-    margin-top: var(--space-4);
-    color: var(--color-text-muted);
-    font-size: var(--text-lg);
-    line-height: var(--leading-normal);
-  }
-
-  @media (min-width: 64rem) {
-    .next__card {
-      grid-template-columns: minmax(0, 1fr) auto;
-      align-items: end;
-      gap: var(--space-12);
-    }
-
-    .next__actions {
-      flex-direction: column;
-      align-items: stretch;
     }
   }
 </style>

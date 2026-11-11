@@ -1,0 +1,137 @@
+---
+/**
+ * A page made of sections from the `docs` collection (the model page, the
+ * getting-started guide): the page header, an "On this page" list that is
+ * beside the text on desktops and above it on phones, the sections in
+ * order, and the closing call to action in the default slot.
+ */
+import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import DocSection from "./DocSection.astro";
+import PageHeader from "./PageHeader.astro";
+
+interface Props {
+  page: "model" | "guide";
+  title: string;
+  /** The h1. */
+  heading: string;
+  eyebrow: string;
+  description: string;
+  image: string;
+  imageAlt: string;
+}
+
+const { page, title, heading, eyebrow, description, image, imageAlt } = Astro.props;
+const entries = (await getCollection("docs", (e) => e.data.page === page)).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+const idOf = (entry: (typeof entries)[number]) => entry.id.split("/").pop() ?? entry.id;
+---
+
+<BaseLayout {title} {description} {image} {imageAlt}>
+  <PageHeader {eyebrow} title={heading}><slot name="lede" /></PageHeader>
+
+  <div class="container doc">
+    <nav class="doc__nav" aria-label="On this page">
+      <p class="doc__nav-title" aria-hidden="true">On this page</p>
+      <ol class="doc__nav-list" role="list">
+        {
+          entries.map((entry) => (
+            <li>
+              <a href={`#${idOf(entry)}`}>{entry.data.title}</a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+    <div class="doc__body">
+      {entries.map((entry) => <DocSection {entry} />)}
+    </div>
+  </div>
+
+  <slot />
+</BaseLayout>
+
+<style>
+  .doc {
+    display: grid;
+    gap: var(--space-10);
+    padding-bottom: var(--space-4);
+  }
+
+  .doc__nav-title {
+    margin-bottom: var(--space-3);
+    color: var(--color-text-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+  }
+
+  .doc__nav-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: 0;
+    list-style: none;
+  }
+
+  .doc__nav-list a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--space-8);
+    padding-inline: var(--space-3);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-full);
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+  }
+
+  .doc__nav-list a:hover {
+    border-color: var(--color-border-strong);
+    color: var(--color-text);
+  }
+
+  .doc__body {
+    min-width: 0;
+  }
+
+  @media (min-width: 64rem) {
+    .doc {
+      grid-template-columns: 12rem minmax(0, 1fr);
+      align-items: start;
+      gap: var(--space-16);
+    }
+
+    .doc__nav {
+      position: sticky;
+      top: var(--space-8);
+    }
+
+    .doc__nav-list {
+      flex-direction: column;
+      flex-wrap: nowrap;
+      gap: 0;
+      border-left: var(--border-width) solid var(--color-border);
+    }
+
+    .doc__nav-list a {
+      display: flex;
+      min-height: var(--space-8);
+      margin-left: calc(-1 * var(--border-width));
+      padding-inline: var(--space-4);
+      border: 0;
+      border-left: var(--border-width) solid transparent;
+      border-radius: 0;
+      background: none;
+      font-weight: var(--weight-regular);
+    }
+
+    .doc__nav-list a:hover {
+      border-left-color: var(--color-accent);
+    }
+  }
+</style>
