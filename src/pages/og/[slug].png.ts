@@ -19,6 +19,10 @@ const CARDS = {
     label: "FAQ",
     title: "What people ask first about vyuha.",
   },
+  changelog: {
+    label: "Changelog",
+    title: "Every release of this site, newest first.",
+  },
 } as const;
 
 export const getStaticPaths = (() =>

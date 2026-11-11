@@ -3,11 +3,16 @@
  * getting-started guide, one Markdown file per section; `faq` holds one
  * question and its answer per file. `astro check` validates every file
  * against these schemas, so a missing field or a question without its
- * question mark fails the build.
+ * question mark fails the build. `changelog` holds the releases of
+ * CHANGELOG.md, read by src/lib/changelog.mjs.
  */
+
 import { defineCollection } from "astro:content";
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
+import { parseChangelog } from "./lib/changelog.mjs";
 
 export const ILLUSTRATIONS = ["project", "run", "decisions", "inbox"] as const;
 
@@ -39,4 +44,34 @@ const faq = defineCollection({
   }),
 });
 
-export const collections = { docs, faq };
+const CHANGELOG = fileURLToPath(new URL("../CHANGELOG.md", import.meta.url));
+
+/**
+ * The releases in CHANGELOG.md, one entry per release, newest first. The
+ * file stays the one source: the page renders each release's notes as they
+ * are written there.
+ */
+const changelog = defineCollection({
+  loader: {
+    name: "vyuha:changelog",
+    load: async ({ store, parseData, renderMarkdown, watcher }) => {
+      watcher?.add(CHANGELOG);
+      const releases = parseChangelog(await readFile(CHANGELOG, "utf8"));
+      store.clear();
+      for (const [index, release] of releases.entries()) {
+        const { version, date, body } = release;
+        const data = await parseData({ id: version, data: { version, date, order: index + 1 } });
+        store.set({ id: version, data, body, rendered: await renderMarkdown(body) });
+      }
+    },
+  },
+  schema: z.object({
+    version: z.string().regex(/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/),
+    /** The release date, YYYY-MM-DD, as written in CHANGELOG.md. */
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    /** Position on the page, from 1 (the newest). */
+    order: z.number().int().positive(),
+  }),
+});
+
+export const collections = { docs, faq, changelog };

@@ -1,0 +1,201 @@
+---
+/**
+ * The changelog: every release of the site from CHANGELOG.md (the
+ * `changelog` collection), newest first. Each release is an h2 with its
+ * date beside its notes on desktops and above them on phones; the notes'
+ * own `###` headings become h3s.
+ */
+import { getCollection, render } from "astro:content";
+import NextStep from "../components/NextStep.astro";
+import PageHeader from "../components/PageHeader.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { href, SITE } from "../lib/site";
+import "../styles/prose.css";
+
+const entries = (await getCollection("changelog")).sort((a, b) => a.data.order - b.data.order);
+const releases = await Promise.all(
+  entries.map(async (entry) => ({ entry, Content: (await render(entry)).Content })),
+);
+
+const longDate = new Intl.DateTimeFormat(SITE.lang, {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+});
+const formatDate = (date: string) => longDate.format(new Date(`${date}T00:00:00Z`));
+const changelogFile = `${SITE.repository}/blob/main/CHANGELOG.md`;
+---
+
+<BaseLayout
+  title="Changelog"
+  description="Every release of the vyuha site, newest first: what changed on which pages, in the design and in the build."
+  image="/og/changelog.png"
+  imageAlt="vyuha, changelog: every release of this site, newest first."
+>
+  <PageHeader eyebrow="Changelog" title="What changed, release by release.">
+    Each release of this site is a tagged commit on <code>main</code>. The notes below are the ones
+    in <a href={changelogFile}>CHANGELOG.md</a> in the site's repository, newest first.
+  </PageHeader>
+
+  <div class="container">
+    <ol class="releases" role="list">
+      {
+        releases.map(({ entry, Content }, index) => (
+          <li class="release" id={`v${entry.data.version}`}>
+            <div class="release__meta">
+              <h2 class="release__title">
+                <span class="release__label">Version</span>{" "}
+                <span class="release__version">{entry.data.version}</span>
+              </h2>
+              <p class="release__date">
+                <time datetime={entry.data.date}>{formatDate(entry.data.date)}</time>
+                {index === 0 && <span class="release__latest">Latest</span>}
+              </p>
+              <p class="release__source">
+                <a href={`${SITE.repository}/tree/v${entry.data.version}`}>
+                  Source at <code>v{entry.data.version}</code>
+                </a>
+              </p>
+            </div>
+            <div class="prose release__notes">
+              <Content />
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+
+  <NextStep
+    title="See what the site describes."
+    primary={{ label: "Read the getting-started guide", href: href("/guide/") }}
+    secondary={{ label: "Request access on GitHub", href: SITE.accessRequest, external: true }}
+  >
+    The changelog covers this site. The guide covers vyuha itself: what you do once you have
+    access.
+  </NextStep>
+</BaseLayout>
+
+<style>
+  .releases {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .release {
+    display: grid;
+    gap: var(--space-6);
+    padding-block: var(--space-10);
+    border-top: var(--border-width) solid var(--color-border);
+    scroll-margin-top: var(--space-6);
+  }
+
+  .release:last-child {
+    border-bottom: var(--border-width) solid var(--color-border);
+  }
+
+  .release__meta {
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+  }
+
+  .release__title {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .release__label {
+    color: var(--color-text-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-regular);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+  }
+
+  .release__version {
+    font-family: var(--font-mono);
+    font-size: var(--text-3xl);
+    font-weight: var(--weight-regular);
+    letter-spacing: var(--tracking-heading);
+    line-height: var(--leading-tight);
+  }
+
+  .release__date {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .release__latest {
+    padding: var(--space-0-5) var(--space-2);
+    border: var(--border-width) solid var(--color-accent);
+    border-radius: var(--radius-full);
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label);
+    line-height: var(--leading-normal);
+    text-transform: uppercase;
+  }
+
+  .release__source {
+    font-size: var(--text-sm);
+  }
+
+  .release__source a {
+    display: inline-block;
+    padding-block: var(--space-1);
+    font-weight: var(--weight-semibold);
+  }
+
+  .release__source code {
+    font-size: 0.9em;
+  }
+
+  /* The release's opening sentence reads as its summary. */
+  .release__notes > p:first-child {
+    color: var(--color-text);
+    font-size: var(--text-lg);
+    line-height: var(--leading-normal);
+  }
+
+  /* Notes are grouped under ### headings: Pages, Design and build, Workflows. */
+  .release__notes :global(h3) {
+    margin-top: var(--space-10);
+    padding-bottom: var(--space-2);
+    border-bottom: var(--border-width) solid var(--color-border);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-normal);
+  }
+
+  .release__notes :global(h3 + *) {
+    margin-top: var(--space-4);
+  }
+
+  .release__notes :global(a) {
+    overflow-wrap: anywhere;
+  }
+
+  @media (min-width: 64rem) {
+    .release {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+      gap: var(--space-16);
+      padding-block: var(--space-16);
+    }
+
+    .release__meta {
+      position: sticky;
+      top: var(--space-8);
+      align-self: start;
+    }
+  }
+</style>
