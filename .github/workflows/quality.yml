@@ -29,6 +29,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Biome (format and lint)
         run: pnpm exec biome ci .
+      - name: Generate content types
+        run: pnpm exec astro sync
       - name: TypeScript
         run: pnpm exec tsc --noEmit
       - name: Unit tests (link check, dist audit, contrast table)

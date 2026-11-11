@@ -1,0 +1,32 @@
+---
+/**
+ * The model in plain words: work, agents, decisions, evidence, playbooks,
+ * pods and budgets, one section each (src/content/docs/model).
+ */
+import DocPage from "../components/DocPage.astro";
+import NextStep from "../components/NextStep.astro";
+import { href, SITE } from "../lib/site";
+---
+
+<DocPage
+  page="model"
+  title="How vyuha works"
+  heading="The model, in plain words."
+  eyebrow="The model"
+  description="How vyuha works in plain words: work, agents, decisions, evidence, playbooks, pods and budgets, and how they let a small team run a company of agents."
+  image="/og/model.png"
+  imageAlt="vyuha, the model: work, agents, decisions, evidence, playbooks, pods and budgets."
+>
+  <Fragment slot="lede">
+    Seven ideas explain vyuha. Work is what you track. Agents do it. Decisions say what they may do
+    alone. Evidence shows what they did. Playbooks, pods and budgets give the company its shape.
+  </Fragment>
+  <NextStep
+    title="See the first steps."
+    primary={{ label: "Read the getting-started guide", href: href("/guide/") }}
+    secondary={{ label: "Request access on GitHub", href: SITE.accessRequest, external: true }}
+  >
+    The guide covers what you do once you have access: connect a repository, create a project, file
+    a first issue and read a run's evidence.
+  </NextStep>
+</DocPage>

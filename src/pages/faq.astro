@@ -1,0 +1,84 @@
+---
+/**
+ * The FAQ: one question and its answer per file in src/content/faq. Each
+ * question is an h2, so a reader can jump between them by heading.
+ */
+import { getCollection, render } from "astro:content";
+import NextStep from "../components/NextStep.astro";
+import PageHeader from "../components/PageHeader.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { href, SITE } from "../lib/site";
+import "../styles/prose.css";
+
+const entries = (await getCollection("faq")).sort((a, b) => a.data.order - b.data.order);
+const items = await Promise.all(
+  entries.map(async (entry) => ({ entry, Content: (await render(entry)).Content })),
+);
+---
+
+<BaseLayout
+  title="Questions and answers"
+  description="Answers to the questions people ask first about vyuha: what it is, whether you can use it today, who merges the code and what stops an agent."
+  image="/og/faq.png"
+  imageAlt="vyuha, questions and answers."
+>
+  <PageHeader eyebrow="FAQ" title="Questions and answers.">
+    Short answers to what people ask first. If yours is not here, the guide and the model page go
+    further.
+  </PageHeader>
+
+  <div class="container">
+    <ol class="faq" role="list">
+      {
+        items.map(({ entry, Content }) => (
+          <li class="faq__item" id={entry.id}>
+            <h2>{entry.data.question}</h2>
+            <div class="prose">
+              <Content />
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+
+  <NextStep
+    title="Still a question?"
+    primary={{ label: "Read the getting-started guide", href: href("/guide/") }}
+    secondary={{ label: "Request access on GitHub", href: SITE.accessRequest, external: true }}
+  >
+    Ask it in your request for access. The request is a public issue, and the reply comes on it.
+  </NextStep>
+</BaseLayout>
+
+<style>
+  .faq {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .faq__item {
+    display: grid;
+    gap: var(--space-4);
+    padding-block: var(--space-8);
+    border-top: var(--border-width) solid var(--color-border);
+  }
+
+  .faq__item:last-child {
+    border-bottom: var(--border-width) solid var(--color-border);
+  }
+
+  h2 {
+    font-size: var(--text-2xl);
+    max-width: 24ch;
+  }
+
+  @media (min-width: 64rem) {
+    .faq__item {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: var(--space-16);
+      padding-block: var(--space-10);
+    }
+  }
+</style>

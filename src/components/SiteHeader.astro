@@ -2,29 +2,43 @@
 import { href, SITE } from "../lib/site";
 import Mark from "./Mark.astro";
 
+/** The pages in the header, in order. The home page is the wordmark. */
+const pages = [
+  { label: "Model", path: "/model/" },
+  { label: "Guide", path: "/guide/" },
+  { label: "FAQ", path: "/faq/" },
+];
+
 const path = Astro.url.pathname.replace(/\/?$/, "/");
 const isHome = path === href("/");
-const guide = href("/guide/");
 ---
 
 <header class="site-header">
-  <div class="container site-header__inner">
+  <nav class="container site-header__inner" aria-label="Main">
     <a class="wordmark" href={href("/")} aria-current={isHome ? "page" : undefined}>
       <Mark size={22} />
       <span class="wordmark__name">{SITE.name}</span>
       <span class="visually-hidden">, home</span>
     </a>
-    <nav aria-label="Main">
-      <ul class="site-nav" role="list">
-        <li>
-          <a class="site-nav__link" href={guide} aria-current={path === guide ? "page" : undefined}>
-            Guide
-          </a>
-        </li>
-        <li><a class="site-nav__link" href={SITE.accessRequest}>Request access</a></li>
-      </ul>
-    </nav>
-  </div>
+    <ul class="site-nav" role="list">
+      {
+        pages.map((p) => (
+          <li>
+            <a
+              class="site-nav__link"
+              href={href(p.path)}
+              aria-current={path === href(p.path) ? "page" : undefined}
+            >
+              {p.label}
+            </a>
+          </li>
+        ))
+      }
+      <li class="site-nav__access">
+        <a class="site-nav__link" href={SITE.accessRequest}>Request access</a>
+      </li>
+    </ul>
+  </nav>
 </header>
 
 <style>
@@ -58,9 +72,24 @@ const guide = href("/guide/");
 
   .site-nav {
     display: flex;
-    gap: var(--space-6);
+    gap: var(--space-5);
     padding: 0;
     list-style: none;
+  }
+
+  /* On a phone the header has room for the pages; the request is in the footer and the pages. */
+  .site-nav__access {
+    display: none;
+  }
+
+  @media (min-width: 40rem) {
+    .site-nav {
+      gap: var(--space-6);
+    }
+
+    .site-nav__access {
+      display: list-item;
+    }
   }
 
   .site-nav__link {
@@ -75,5 +104,13 @@ const guide = href("/guide/");
   .site-nav__link:hover,
   .site-nav__link[aria-current="page"] {
     color: var(--color-text);
+  }
+
+  /* The current page is marked by more than colour: an accent underline. */
+  .site-nav__link[aria-current="page"] {
+    text-decoration: underline;
+    text-decoration-color: var(--color-accent);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.35em;
   }
 </style>
