@@ -1,0 +1,188 @@
+// @ts-check
+/**
+ * Contrast table for the colour tokens in src/styles/tokens.css.
+ *
+ *   node scripts/contrast.mjs          check: every pair meets its minimum and
+ *                                      docs/contrast.md matches the tokens
+ *   node scripts/contrast.mjs --write  regenerate docs/contrast.md
+ *
+ * Text pairs need 4.5:1 (WCAG 2.2 SC 1.4.3, small text). Non-text pairs (focus
+ * ring, control borders) need 3:1 (SC 1.4.11).
+ */
+import { readFileSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
+const root = fileURLToPath(new URL("..", import.meta.url));
+const TOKENS = `${root}src/styles/tokens.css`;
+const TABLE = `${root}docs/contrast.md`;
+
+/** @typedef {"light" | "dark"} Theme */
+/** @typedef {{ fg: string, bg: string, kind: "text" | "non-text", use: string }} Pair */
+
+const TEXT_MIN = 4.5;
+const NON_TEXT_MIN = 3;
+
+const TEXTS = [
+  ["text", "body text, headings"],
+  ["text-muted", "secondary text"],
+  ["text-subtle", "captions, metadata"],
+  ["accent", "links, accent text"],
+  ["accent-hover", "links on hover"],
+];
+const BACKGROUNDS = ["bg", "surface", "surface-raised", "accent-subtle"];
+
+/** Every pair the site may render, in both themes. @type {Pair[]} */
+export const PAIRS = [
+  ...TEXTS.flatMap(([fg = "", use = ""]) =>
+    BACKGROUNDS.map((bg) => ({ fg, bg, kind: /** @type {const} */ ("text"), use })),
+  ),
+  { fg: "on-accent", bg: "accent", kind: "text", use: "text on an accent button" },
+  { fg: "on-accent", bg: "accent-hover", kind: "text", use: "accent button on hover" },
+  { fg: "text", bg: "selection", kind: "text", use: "selected text" },
+  ...["bg", "surface", "surface-raised", "accent-subtle"].map((bg) => ({
+    fg: "focus",
+    bg,
+    kind: /** @type {const} */ ("non-text"),
+    use: "focus ring",
+  })),
+  ...["bg", "surface", "surface-raised"].map((bg) => ({
+    fg: "border-strong",
+    bg,
+    kind: /** @type {const} */ ("non-text"),
+    use: "control border",
+  })),
+];
+
+/**
+ * Read the --color-* custom properties of the light :root block and of the
+ * :root block inside @media (prefers-color-scheme: dark).
+ * @param {string} css
+ * @returns {Record<Theme, Record<string, string>>}
+ */
+export function parseTokens(css) {
+  const source = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const darkAt = source.search(/@media\s*\(\s*prefers-color-scheme\s*:\s*dark\s*\)/);
+  if (darkAt < 0) throw new Error("tokens.css has no prefers-color-scheme: dark block");
+  const lightRoot = block(source, source.indexOf(":root"));
+  const darkRoot = block(source, source.indexOf(":root", darkAt));
+  const light = colours(lightRoot);
+  // Dark inherits any colour it does not override.
+  const dark = { ...light, ...colours(darkRoot) };
+  return { light, dark };
+}
+
+/** @param {string} source @param {number} from */
+function block(source, from) {
+  if (from < 0) throw new Error("tokens.css: :root block not found");
+  const open = source.indexOf("{", from);
+  let depth = 0;
+  for (let i = open; i < source.length; i++) {
+    if (source[i] === "{") depth++;
+    if (source[i] === "}" && --depth === 0) return source.slice(open + 1, i);
+  }
+  throw new Error("tokens.css: unbalanced braces");
+}
+
+/** @param {string} body */
+function colours(body) {
+  /** @type {Record<string, string>} */
+  const out = {};
+  for (const m of body.matchAll(/--color-([a-z-]+)\s*:\s*(#[0-9a-fA-F]{3,6})\s*;/g)) {
+    out[m[1] ?? ""] = (m[2] ?? "").toLowerCase();
+  }
+  return out;
+}
+
+/** @param {string} hex */
+function luminance(hex) {
+  const h = hex.replace("#", "");
+  const full = h.length === 3 ? [...h].map((c) => c + c).join("") : h;
+  const [r, g, b] = [0, 2, 4].map((i) => {
+    const c = Number.parseInt(full.slice(i, i + 2), 16) / 255;
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * (r ?? 0) + 0.7152 * (g ?? 0) + 0.0722 * (b ?? 0);
+}
+
+/** WCAG 2 contrast ratio. @param {string} a @param {string} b */
+export function contrast(a, b) {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return ((hi ?? 0) + 0.05) / ((lo ?? 0) + 0.05);
+}
+
+/**
+ * Ratios are floored to two decimals, so a pair shown as 4.50 is never 4.499.
+ * @param {number} r
+ */
+const fmt = (r) => (Math.floor(r * 100) / 100).toFixed(2);
+
+/** @param {Record<Theme, Record<string, string>>} tokens */
+export function evaluate(tokens) {
+  return /** @type {Theme[]} */ (["light", "dark"]).flatMap((theme) =>
+    PAIRS.map((p) => {
+      const fg = tokens[theme][p.fg];
+      const bg = tokens[theme][p.bg];
+      if (!fg || !bg) throw new Error(`${theme}: --color-${p.fg} or --color-${p.bg} is missing`);
+      const ratio = contrast(fg, bg);
+      const min = p.kind === "text" ? TEXT_MIN : NON_TEXT_MIN;
+      return { theme, ...p, fgHex: fg, bgHex: bg, ratio, min, pass: ratio >= min };
+    }),
+  );
+}
+
+/** @param {ReturnType<typeof evaluate>} rows */
+export function render(rows) {
+  const lines = [
+    "# Colour contrast",
+    "",
+    "Generated by `node scripts/contrast.mjs --write` from `src/styles/tokens.css`; do not edit by hand.",
+    "`pnpm test` fails when this table and the tokens disagree, or when a pair falls under its minimum.",
+    "",
+    `Text pairs need ${TEXT_MIN}:1 (WCAG 2.2 SC 1.4.3). Non-text pairs (focus ring, control borders) need ${NON_TEXT_MIN}:1 (SC 1.4.11).`,
+    "Ratios are rounded down. `--color-border` is decorative (dividers between areas that are also told apart by space and type) and is not paired.",
+    "",
+  ];
+  for (const theme of ["light", "dark"]) {
+    lines.push(
+      `## ${theme === "light" ? "Light" : "Dark"}`,
+      "",
+      "| Foreground | Background | Use | Ratio | Minimum | Result |",
+      "| --- | --- | --- | ---: | ---: | --- |",
+    );
+    for (const r of rows.filter((x) => x.theme === theme)) {
+      lines.push(
+        `| \`--color-${r.fg}\` ${r.fgHex} | \`--color-${r.bg}\` ${r.bgHex} | ${r.use} | ${fmt(r.ratio)}:1 | ${r.min}:1 | ${r.pass ? "pass" : "FAIL"} |`,
+      );
+    }
+    lines.push("");
+  }
+  return lines.join("\n");
+}
+
+function main() {
+  const rows = evaluate(parseTokens(readFileSync(TOKENS, "utf8")));
+  const table = render(rows);
+  if (process.argv.includes("--write")) {
+    writeFileSync(TABLE, table);
+    console.log(`wrote ${TABLE}`);
+  }
+  let failed = false;
+  for (const r of rows.filter((x) => !x.pass)) {
+    console.error(
+      `${r.theme}: --color-${r.fg} on --color-${r.bg} is ${fmt(r.ratio)}:1, needs ${r.min}:1`,
+    );
+    failed = true;
+  }
+  let current = "";
+  try {
+    current = readFileSync(TABLE, "utf8");
+  } catch {}
+  if (current !== table) {
+    console.error("docs/contrast.md is out of date: run `pnpm contrast`");
+    failed = true;
+  }
+  if (failed) process.exit(1);
+  console.log(`contrast: ${rows.length} pairs pass`);
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) main();

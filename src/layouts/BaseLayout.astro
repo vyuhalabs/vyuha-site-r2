@@ -1,0 +1,61 @@
+---
+/**
+ * The frame of every page: head metadata, the skip link, and the header,
+ * main and footer landmarks. A page supplies its one h1 inside the slot.
+ */
+import sourceSans400 from "../assets/fonts/source-sans-3-400.woff2?url";
+import Seo from "../components/Seo.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import { href, SITE } from "../lib/site";
+import "../styles/tokens.css";
+import "../styles/fonts.css";
+import "../styles/base.css";
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  imageAlt?: string;
+  noindex?: boolean;
+  canonicalPath?: string;
+}
+
+const seo = Astro.props;
+---
+
+<!doctype html>
+<html lang={SITE.lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#fbfaf8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#141210" media="(prefers-color-scheme: dark)" />
+    <meta name="generator" content={Astro.generator} />
+    {/* Only the text weight is preloaded; the others load when first used. */}
+    <link rel="preload" href={sourceSans400} as="font" type="font/woff2" crossorigin />
+    <link rel="icon" href={href("/favicon.svg")} type="image/svg+xml" />
+    <link rel="sitemap" href={href("/sitemap.xml")} />
+    <Seo {...seo} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <SiteHeader />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <SiteFooter />
+  </body>
+</html>
+
+<style>
+  main {
+    flex: 1 0 auto;
+  }
+
+  /* The skip link moves focus here; no ring on the landmark itself. */
+  main:focus {
+    outline: none;
+  }
+</style>
