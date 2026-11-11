@@ -9,14 +9,26 @@
  * inline event handlers, nothing loaded from another origin (stylesheets,
  * fonts, images, frames, preconnects, CSS url()), no Set-Cookie meta;
  * sitemap.xml lists every indexable page and robots.txt points at it.
- * Per page: lang, one h1, header/main/footer landmarks, a skip link to main
- * as the first focusable element, and the SEO head (title, description,
- * canonical, Open Graph, Twitter card).
+ * Per page: lang, one h1, headings that start at h1 and skip no level,
+ * header/main/footer landmarks, a skip link to main as the first focusable
+ * element, no mailto: link, the SEO head (title, description, canonical, Open
+ * Graph, Twitter card), and the copy rules of "Brand and voice" (no
+ * exclamation marks, "vyuha" lowercase, never "the AI" or "the bot", no hype
+ * words).
  */
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { cssUrls, inlineCss, pagePath, read, siteParts, tags, walk } from "./lib/dist.mjs";
+import {
+  cssUrls,
+  inlineCss,
+  pagePath,
+  read,
+  siteParts,
+  tags,
+  visibleText,
+  walk,
+} from "./lib/dist.mjs";
 
 /** Elements and attributes through which a page makes a request. */
 const LOADING = [
@@ -48,6 +60,21 @@ const LOADING_RELS = new Set([
   "mask-icon",
 ]);
 const FOCUSABLE = new Set(["a", "button", "input", "select", "textarea", "summary", "iframe"]);
+
+/**
+ * Words "Brand and voice" rules out, as patterns over the page's text: the
+ * name in any case but lowercase, the product called "the AI" or "the bot",
+ * and hype.
+ */
+const COPY_RULES = [
+  { pattern: /\b(?!vyuha\b)[vV][yY][uU][hH][aA]\b/, rule: '"vyuha" is always lowercase' },
+  { pattern: /\bthe (AI|bot)\b/i, rule: 'say "agents", never "the AI" or "the bot"' },
+  {
+    pattern:
+      /\b(revolutionary|revolutioni[sz]e|10x|magic(al)?|supercharge[ds]?|game[- ]chang(er|ing)|cutting[- ]edge|next[- ]gen|blazing(ly)?|unleash|seamless(ly)?|effortless(ly)?|world[- ]class)\b/i,
+    rule: "no hype words",
+  },
+];
 
 /**
  * @param {{ dist: string, siteUrl?: string }} options
@@ -116,6 +143,14 @@ export function auditDist({ dist, siteUrl }) {
     const htmlTag = all.find((t) => t.name === "html");
     if (!htmlTag?.attrs.lang) errors.push(`${file}: <html> has no lang`);
     if (count("h1") !== 1) errors.push(`${file}: ${count("h1")} h1 elements, expected 1`);
+    let level = 0;
+    for (const t of all.filter((t) => /^h[1-6]$/.test(t.name))) {
+      const next = Number(t.name.slice(1));
+      if (next > level + 1) {
+        errors.push(`${file}: <${t.name}> follows ${level ? `<h${level}>` : "no heading"}`);
+      }
+      level = next;
+    }
     if (count("main") !== 1) errors.push(`${file}: ${count("main")} <main> landmarks, expected 1`);
     if (count("header") < 1) errors.push(`${file}: no <header> landmark`);
     if (count("footer") < 1) errors.push(`${file}: no <footer> landmark`);
@@ -125,6 +160,21 @@ export function auditDist({ dist, siteUrl }) {
     );
     if (!mainId || firstFocusable?.name !== "a" || firstFocusable.attrs.href !== `#${mainId}`) {
       errors.push(`${file}: the first focusable element is not a skip link to <main>`);
+    }
+
+    // No mailto: there is no role address to write to.
+    if (all.some((t) => /^mailto:/i.test(t.attrs.href ?? ""))) {
+      errors.push(`${file}: mailto: link`);
+    }
+
+    // Copy rules of "Brand and voice".
+    const text = visibleText(html);
+    if (visibleText(html, { withoutCode: true }).includes("!")) {
+      errors.push(`${file}: exclamation mark in the copy`);
+    }
+    for (const { pattern, rule } of COPY_RULES) {
+      const hit = text.match(pattern);
+      if (hit) errors.push(`${file}: "${hit[0]}": ${rule}`);
     }
 
     // SEO head.
@@ -190,7 +240,7 @@ function main() {
     process.exit(1);
   }
   console.log(
-    `audit-dist: ${pages} page(s): no JavaScript, no third-party requests, no cookies; landmarks, one h1, skip link and SEO head on every page; sitemap and robots agree`,
+    `audit-dist: ${pages} page(s): no JavaScript, no third-party requests, no cookies; landmarks, one h1, headings in order, skip link, SEO head and the copy rules on every page; no mailto; sitemap and robots agree`,
   );
 }
 

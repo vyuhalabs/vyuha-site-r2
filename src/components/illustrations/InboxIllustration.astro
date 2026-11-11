@@ -1,0 +1,212 @@
+---
+/**
+ * The Inbox: the decisions that wait for a person, each with its tier and
+ * what the agent recommends; the month's budget; and the button that stops
+ * every run. Invented data.
+ */
+import Illustration from "./Illustration.astro";
+
+const items: {
+  tier: "approve" | "notify";
+  title: string;
+  detail: string;
+  when: string;
+  action: string;
+}[] = [
+  {
+    tier: "approve",
+    title: "Release gate: publish Billing export",
+    detail: "The delivery lead agent recommends: publish",
+    when: "Needed by 17:00",
+    action: "Approve",
+  },
+  {
+    tier: "approve",
+    title: "Raise the November budget to $800",
+    detail: "Billing export has spent $552 of $600",
+    when: "Needed by tomorrow",
+    action: "Approve",
+  },
+  {
+    tier: "notify",
+    title: "Merge WEB-142 once it is verified",
+    detail: "vyuha merges at 15:30 unless you object",
+    when: "Window: 30 min",
+    action: "Object",
+  },
+];
+---
+
+<Illustration
+  caption="Illustration: the Inbox with three decisions waiting for a person, the month's budget and the button that stops every run. The data is invented."
+>
+  <div class="ill-bar">
+    <span class="ill-crumbs">
+      <strong>Inbox</strong>
+      <span class="ill-chip ill-chip--accent">3</span>
+    </span>
+    <span class="controls">
+      <span class="ill-meta runs"><span class="runs__dot"></span>4 runs active</span>
+      <span class="ill-button ill-button--stop">Stop all runs</span>
+    </span>
+  </div>
+
+  <ul class="items">
+    {
+      items.map((i) => (
+        <li class="item">
+          <span class:list={["ill-chip", i.tier === "approve" ? "ill-chip--accent" : "ill-chip--strong"]}>
+            {i.tier}
+          </span>
+          <span class="item__body">
+            <span class="item__title">{i.title}</span>
+            <span class="ill-meta">{i.detail}</span>
+          </span>
+          <span class="item__side">
+            <span class="ill-meta">{i.when}</span>
+            <span class="ill-button">{i.action}</span>
+          </span>
+        </li>
+      ))
+    }
+  </ul>
+
+  <div class="budget">
+    <div class="budget__head">
+      <span class="ill-label">Budget · November</span>
+      <span class="budget__figure"><strong>$552</strong> of $600</span>
+    </div>
+    <div class="ill-meter"><span class="budget__spent"></span></div>
+    <span class="ill-meta">Billing export · 92% spent · threshold of $480 passed</span>
+  </div>
+
+  <Fragment slot="description">
+    <p>The Inbox, with three decisions waiting for a person:</p>
+    <ul>
+      {
+        items.map((i) => (
+          <li>
+            {i.title}, on the {i.tier} tier. {i.detail}. {i.when}. Button: {i.action}.
+          </li>
+        ))
+      }
+    </ul>
+    <p>
+      The budget for November: $552 of $600 spent on the project Billing export, 92 percent; the
+      threshold of $480 is passed. Four runs are active, and a Stop all runs button halts every
+      run within two seconds.
+    </p>
+  </Fragment>
+</Illustration>
+
+<style>
+  .controls {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .runs {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .runs__dot {
+    width: var(--space-2);
+    height: var(--space-2);
+    border-radius: var(--radius-full);
+    background: var(--color-accent);
+  }
+
+  .items {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-4);
+    border-bottom: var(--border-width) solid var(--color-border);
+  }
+
+  .item > .ill-chip {
+    justify-self: start;
+  }
+
+  .item__body {
+    display: grid;
+    gap: var(--space-0-5);
+    min-width: 0;
+    line-height: var(--leading-snug);
+  }
+
+  .item__title {
+    font-weight: var(--weight-semibold);
+  }
+
+  .item__side {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .budget {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    background: var(--color-surface);
+  }
+
+  .budget__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-1) var(--space-4);
+  }
+
+  .budget__figure {
+    color: var(--color-text-muted);
+  }
+
+  .budget__figure strong {
+    color: var(--color-text);
+    font-weight: var(--weight-semibold);
+  }
+
+  .budget__spent {
+    width: 92%;
+  }
+
+  /* Wider: the tier, the decision and the action in aligned columns. */
+  @container (min-width: 30rem) {
+    .items {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+
+    .item {
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
+      align-items: start;
+      padding-inline: var(--space-5);
+    }
+
+    .item__side {
+      display: grid;
+      justify-items: end;
+      text-align: right;
+    }
+
+    .budget {
+      padding-inline: var(--space-5);
+    }
+  }
+</style>

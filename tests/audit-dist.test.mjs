@@ -58,6 +58,40 @@ describe("audit-dist", () => {
     assert.match(run({ "index.html": two }).join("\n"), /2 h1 elements/);
   });
 
+  it("rejects headings that skip a level or start below h1", () => {
+    const skipped = page({ body: "<h2>a</h2><h4>b</h4>" });
+    assert.match(run({ "index.html": skipped }).join("\n"), /<h4> follows <h2>/);
+    const late = page({ h1: "<h2>a</h2><h1>vyuha</h1>" });
+    assert.match(run({ "index.html": late }).join("\n"), /<h2> follows no heading/);
+    const fine = page({ body: "<h2>a</h2><h3>b</h3><h2>c</h2>" });
+    assert.deepEqual(run({ "index.html": fine }), []);
+  });
+
+  it("rejects mailto: links", () => {
+    const html = page({ body: '<a href="mailto:someone@example.org">Write</a>' });
+    assert.match(run({ "index.html": html }).join("\n"), /mailto: link/);
+  });
+
+  it("holds the copy to the rules of Brand and voice", () => {
+    const errors = run({
+      "index.html": page({
+        body: "<p>Vyuha is here!</p><p>The AI does it.</p><p>Supercharge your team.</p>",
+      }),
+    }).join("\n");
+    assert.match(errors, /exclamation mark/);
+    assert.match(errors, /"Vyuha": "vyuha" is always lowercase/);
+    assert.match(errors, /"The AI": say "agents"/);
+    assert.match(errors, /"Supercharge": no hype words/);
+  });
+
+  it("allows the copy rules' characters in code, markup and addresses", () => {
+    const html = page({
+      head: "<style>a:not(.x){color:red}</style>",
+      body: '<!-- Note! --><p>vyuha and vyuhalabs/vyuha-site-r2</p><code>a != b</code><a href="https://github.com/vyuhalabs">GitHub</a>',
+    });
+    assert.deepEqual(run({ "index.html": html }), []);
+  });
+
   it("rejects a page whose first focusable element is not the skip link", () => {
     const html = page().replace('<a class="skip-link" href="#main">Skip to content</a>', "");
     assert.match(run({ "index.html": html }).join("\n"), /not a skip link/);

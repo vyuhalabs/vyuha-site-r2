@@ -61,6 +61,29 @@ export function tags(html) {
   return out;
 }
 
+/**
+ * The text a reader gets from a page: element content without markup,
+ * scripts, styles or comments, plus the title and the description. With
+ * `withoutCode`, the content of <code>, <pre>, <kbd> and <samp> is left out
+ * too (code may contain characters prose must not).
+ * @param {string} html
+ * @param {{ withoutCode?: boolean }} [options]
+ */
+export function visibleText(html, { withoutCode = false } = {}) {
+  let source = html
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, " ");
+  if (withoutCode) source = source.replace(/<(code|pre|kbd|samp)\b[^>]*>[\s\S]*?<\/\1>/gi, " ");
+  const meta = tags(html)
+    .filter((t) => t.name === "meta" && t.attrs.name === "description")
+    .map((t) => t.attrs.content ?? "");
+  const body = source.replace(/<[^>]*>/g, " ");
+  return decodeEntities([body, ...meta].join(" "))
+    .replace(/&nbsp;|&#160;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /** @param {string} s */
 export function decodeEntities(s) {
   return s

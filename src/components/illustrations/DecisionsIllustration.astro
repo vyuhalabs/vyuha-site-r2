@@ -1,0 +1,220 @@
+---
+/**
+ * The decision matrix: each kind of decision sits on one tier, autonomous,
+ * notify or approve. The policy shown is an example a team might set.
+ */
+import Illustration from "./Illustration.astro";
+
+const tiers = [
+  { key: "autonomous", name: "Autonomous", meaning: "goes ahead, logged" },
+  { key: "notify", name: "Notify", meaning: "goes ahead, a person may object" },
+  { key: "approve", name: "Approve", meaning: "waits for a person" },
+] as const;
+
+type Tier = (typeof tiers)[number]["key"];
+const rows: { decision: string; tier: Tier; note?: string }[] = [
+  { decision: "Split an issue into sub-tasks", tier: "autonomous" },
+  { decision: "Add a dependency", tier: "notify" },
+  { decision: "Merge a verified UI change", tier: "notify" },
+  { decision: "Merge a database migration", tier: "approve" },
+  { decision: "Raise a project's budget", tier: "approve" },
+  { decision: "Public launch", tier: "approve", note: "Always on approve" },
+];
+
+const tierName = (key: Tier) => tiers.find((t) => t.key === key)?.name ?? key;
+---
+
+<Illustration
+  caption="Illustration: a decision matrix. Each kind of decision sits on one tier: autonomous, notify or approve. The policy shown is an example."
+>
+  <div class="ill-bar">
+    <span class="ill-crumbs">
+      <span class="ill-mono">WEB</span>
+      <span class="ill-sep">/</span>
+      <span>Policy</span>
+      <span class="ill-sep">/</span>
+      <strong>Decision tiers</strong>
+    </span>
+  </div>
+
+  <div class="matrix">
+    <div class="matrix__row matrix__row--head">
+      <span class="ill-label">Decision</span>
+      {tiers.map((t) => <span class="ill-label matrix__tier">{t.name}</span>)}
+    </div>
+    {
+      rows.map((r) => (
+        <div class="matrix__row">
+          <span class="matrix__decision">
+            <span class="matrix__name">{r.decision}</span>
+            {r.note && <span class="ill-meta">{r.note}</span>}
+          </span>
+          {tiers.map((t) => (
+            <span class:list={["matrix__cell", t.key === r.tier && "matrix__cell--on"]}>
+              <span class="matrix__dot" />
+            </span>
+          ))}
+          <span
+            class:list={[
+              "ill-chip",
+              "matrix__chip",
+              r.tier === "approve" ? "ill-chip--accent" : r.tier === "notify" && "ill-chip--strong",
+            ]}
+          >
+            {tierName(r.tier).toLowerCase()}
+          </span>
+        </div>
+      ))
+    }
+  </div>
+
+  <dl class="legend">
+    {
+      tiers.map((t) => (
+        <div class="legend__item">
+          <dt class="ill-mono">{t.key}</dt>
+          <dd class="ill-meta">{t.meaning}</dd>
+        </div>
+      ))
+    }
+  </dl>
+
+  <Fragment slot="description">
+    <p>
+      A decision matrix for the team WEB. Autonomous: the agent goes ahead and the decision is
+      logged. Notify: the agent goes ahead and a person may object. Approve: the agent waits for
+      a person. The decisions and their tiers:
+    </p>
+    <ul>
+      {
+        rows.map((r) => (
+          <li>
+            {r.decision}: {tierName(r.tier).toLowerCase()}
+            {r.note && ` (${r.note.toLowerCase()})`}.
+          </li>
+        ))
+      }
+    </ul>
+  </Fragment>
+</Illustration>
+
+<style>
+  .matrix {
+    padding: var(--space-2) var(--space-4) 0;
+  }
+
+  .matrix__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-3);
+    padding-block: var(--space-3);
+    border-top: var(--border-width) solid var(--color-border);
+  }
+
+  .matrix__row--head {
+    border-top: 0;
+    padding-block: var(--space-2);
+  }
+
+  .matrix__decision {
+    display: grid;
+    min-width: 0;
+    line-height: var(--leading-snug);
+  }
+
+  .matrix__name {
+    font-weight: var(--weight-semibold);
+  }
+
+  /* Narrow: each row says its tier in words; the grid of dots comes in wider. */
+  .matrix__tier,
+  .matrix__cell {
+    display: none;
+  }
+
+  .matrix__row--head .ill-label:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .matrix__cell {
+    place-items: center;
+  }
+
+  .matrix__dot {
+    width: var(--space-2);
+    height: var(--space-2);
+    border-radius: var(--radius-full);
+    background: var(--color-border);
+  }
+
+  .matrix__cell--on .matrix__dot {
+    width: var(--space-4);
+    height: var(--space-4);
+    border: var(--focus-width) solid var(--color-accent);
+    background: var(--color-accent);
+    box-shadow: inset 0 0 0 var(--focus-width) var(--color-surface-raised);
+  }
+
+  .legend {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: var(--space-4);
+    border-top: var(--border-width) solid var(--color-border);
+    background: var(--color-surface);
+  }
+
+  .legend__item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-0-5) var(--space-2);
+  }
+
+  .legend dt {
+    color: var(--color-text);
+  }
+
+  .legend dd {
+    margin: 0;
+  }
+
+  @container (min-width: 30rem) {
+    .matrix {
+      padding-inline: var(--space-5);
+    }
+
+    .matrix__row {
+      grid-template-columns: minmax(0, 1fr) repeat(3, minmax(0, 6.5rem));
+      gap: var(--space-2);
+    }
+
+    .matrix__row--head .ill-label:first-child {
+      grid-column: auto;
+    }
+
+    .matrix__tier {
+      display: block;
+      text-align: center;
+    }
+
+    .matrix__cell {
+      display: grid;
+    }
+
+    .matrix__chip {
+      display: none;
+    }
+
+    .legend {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-4);
+      padding-inline: var(--space-5);
+    }
+
+    .legend__item {
+      display: grid;
+    }
+  }
+</style>
