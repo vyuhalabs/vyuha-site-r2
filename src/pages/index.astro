@@ -1,0 +1,104 @@
+---
+/**
+ * Placeholder home page: proves the stack, the design tokens and the deploy.
+ * The home page itself replaces it in the next deliverable.
+ */
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { SITE } from "../lib/site";
+---
+
+<BaseLayout title={SITE.name}>
+  <section class="intro container" aria-labelledby="intro-title">
+    <p class="eyebrow">Access by request</p>
+    <h1 id="intro-title">vyuha runs a company of agents on the work your team already tracks.</h1>
+    <p class="lead">
+      Agents pick up issues from your teams and projects and run real coding harnesses on
+      machines you control. Every run leaves evidence that a person or a reviewer agent checks
+      before anything merges.
+    </p>
+    <p class="lead">
+      You stay in control: decisions have tiers, spend has budgets, the decisions that need a
+      person wait in the Inbox, and a stop button halts every run within two seconds.
+    </p>
+    <div class="actions">
+      <a class="button" href={SITE.accessRequest}>Request access</a>
+      <a class="text-link" href={SITE.repository}>Read the source of this site</a>
+    </div>
+    <p class="note">
+      This page is a placeholder while the site is built. A request for access is a public
+      issue on this site's GitHub repository, opened from the <code>access-request</code>
+      template: write nothing in it that you would not publish.
+    </p>
+  </section>
+</BaseLayout>
+
+<style>
+  .intro {
+    padding-block: var(--section-space);
+  }
+
+  .eyebrow {
+    margin-bottom: var(--space-4);
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+  }
+
+  h1 {
+    max-width: var(--measure-heading);
+    font-size: var(--text-5xl);
+  }
+
+  .lead {
+    max-width: var(--measure-lead);
+    margin-top: var(--space-6);
+    color: var(--color-text-muted);
+    font-size: var(--text-lg);
+    line-height: var(--leading-normal);
+  }
+
+  .lead + .lead {
+    margin-top: var(--space-4);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4) var(--space-6);
+    margin-top: var(--space-10);
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--space-12);
+    padding-inline: var(--space-6);
+    border-radius: var(--radius-md);
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .button:hover {
+    background: var(--color-accent-hover);
+    color: var(--color-on-accent);
+  }
+
+  .text-link {
+    font-weight: var(--weight-semibold);
+  }
+
+  .note {
+    max-width: var(--measure-lead);
+    margin-top: var(--space-16);
+    padding-top: var(--space-6);
+    border-top: var(--border-width) solid var(--color-border);
+    color: var(--color-text-subtle);
+    font-size: var(--text-sm);
+  }
+</style>

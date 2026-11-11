@@ -1,0 +1,205 @@
+/*
+ * Element defaults and the few layout primitives every page uses.
+ * Values come from tokens.css only.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: var(--space-6);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-relaxed);
+  font-kerning: normal;
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: var(--color-selection);
+  color: var(--color-text);
+}
+
+/* Headings */
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--text-4xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
+}
+
+h2 {
+  font-size: var(--text-3xl);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-heading);
+}
+
+h3 {
+  font-size: var(--text-2xl);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-heading);
+}
+
+h4 {
+  font-size: var(--text-xl);
+  line-height: var(--leading-snug);
+}
+
+p,
+li {
+  text-wrap: pretty;
+}
+
+p + p {
+  margin-top: var(--space-4);
+}
+
+/* Code and identifiers */
+
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  font-variant-ligatures: none;
+}
+
+:not(pre) > code {
+  padding: var(--space-0-5) var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+}
+
+/* Links */
+
+a {
+  color: var(--color-accent);
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+a:hover {
+  color: var(--color-accent-hover);
+  text-decoration-thickness: 2px;
+}
+
+/*
+ * Focus: one visible ring on every interactive element, for keyboard users
+ * (:focus-visible). 2px solid accent, offset from the element, at least 3:1
+ * against every surface (docs/contrast.md).
+ */
+:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+  border-radius: var(--radius-sm);
+}
+
+/* Media */
+
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Layout primitives */
+
+.container {
+  width: 100%;
+  max-width: calc(var(--width-content) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.visually-hidden:not(:focus):not(:active) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip link: off screen until focused, then the first thing on the page. */
+.skip-link {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  z-index: 10;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+  transform: translateY(calc(-100% - var(--space-6)));
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+.skip-link:hover {
+  color: var(--color-on-accent);
+  background: var(--color-accent-hover);
+}
+
+/* Motion: nothing moves for people who ask for less motion. */
+/* !important is the point here: no component's transition may win. */
+/* biome-ignore-start lint/complexity/noImportantStyles: reduced motion must override every component */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+/* biome-ignore-end lint/complexity/noImportantStyles: reduced motion must override every component */

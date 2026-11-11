@@ -1,0 +1,40 @@
+name: build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # The real address, so the link check runs over dist/ built with the real base.
+      SITE_URL: https://vyuhalabs.github.io/vyuha-site-r2
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Astro check
+        run: pnpm exec astro check
+      - name: Astro build
+        run: pnpm exec astro build
+      - name: Internal link check
+        run: node scripts/check-links.mjs dist
+      - name: Audit dist (no JavaScript, no third-party requests, landmarks, SEO head)
+        run: node scripts/audit-dist.mjs dist
